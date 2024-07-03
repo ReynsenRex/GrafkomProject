@@ -231,20 +231,25 @@ function getRandomValue(min, max) {
 }
 
 function createRandomGrass() {
-  gltfLoader.load('resources/grass green.glb', (gltf) => {
+  gltfLoader.load('resources/YellowGrass.glb', (gltf) => {
     const model = gltf.scene;
+    model.traverse((node) => {
+      if (node.isMesh) {
+          node.castShadow = true;
+          node.receiveShadow = true;
+      }
+    });
     const x = getRandomValue(-40, 40);
     const y = 0;
     const z = getRandomValue(-40, 40);
     const rotationY = getRandomValue(-Math.PI, Math.PI);
-    const scale = getRandomValue(4, 4);
+    const scale = getRandomValue(1, 1);
 
     model.position.set(x, y, z);
     model.rotation.set(0, rotationY, 0);
     model.scale.set(scale, scale, scale);
 
-    model.castShadow = true;
-    model.receiveShadow = true;
+    
     Main.scene.add(model);
   }, undefined, (error) => {
     console.error(error);

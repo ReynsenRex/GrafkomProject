@@ -12,11 +12,10 @@ export class Player {
 
         this.animations = {};
         this.state = 'idle';
-
         this.camera.setup(new THREE.Vector3(0, 0, 0), this.rotationVector);
 
         this.loadModel();
-        this.loadEnvironmentModels();  // Ensure this method is defined in this class
+        this.loadEnvironmentModels();
     }
 
     loadModel() {
