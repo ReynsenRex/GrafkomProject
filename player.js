@@ -24,8 +24,8 @@ export class Player {
 
     loadModel() {
         var loader = new FBXLoader();
-        loader.setPath("../resources/Knight/");
-        loader.load("Knight idle.fbx", (fbx) => {
+        loader.setPath("../resources/");
+        loader.load("Idle.fbx", (fbx) => {
             fbx.scale.setScalar(0.01);
             fbx.traverse(c => {
                 c.castShadow = true;
@@ -49,9 +49,9 @@ export class Player {
             };
 
             var loader = new FBXLoader();
-            loader.setPath("../resources/Knight/");
-            loader.load('Knight idle.fbx', (fbx) => { onLoad('idle', fbx); });
-            loader.load('Knight run.fbx', (fbx) => { onLoad('run', fbx); });
+            loader.setPath("../resources/");
+            loader.load('Idle.fbx', (fbx) => { onLoad('idle', fbx); });
+            loader.load('Slow Run.fbx', (fbx) => { onLoad('run', fbx); });
         });
     }
 

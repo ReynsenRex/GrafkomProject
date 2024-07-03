@@ -109,7 +109,7 @@ export class Main {
       75,
       window.innerWidth / window.innerHeight,
       0.1,
-      1000
+      5000
     );
     this.freeCamera.position.set(0, 10, 20);
     this.pointerLockControls = new PointerLockControls(this.freeCamera, this.renderer.domElement);
@@ -297,9 +297,9 @@ function createRandomGrass() {
 }
 
 // Create multiple random grass instances
-for (let i = 0; i < 200; i++) { // Adjust the number of grass instances as needed
-  createRandomGrass();
-}
+// for (let i = 0; i < 200; i++) { // Adjust the number of grass instances as needed
+//   createRandomGrass();
+// }
 
 }
 
