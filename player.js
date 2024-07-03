@@ -16,7 +16,7 @@ export class Player {
         this.camera.setup(new THREE.Vector3(0, 0, 0), this.rotationVector);
 
         this.loadModel();
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 0; i++) {
             this.createApple();
         }
         this.loadEnvironmentModels();  // Ensure this method is defined in this class
@@ -132,23 +132,32 @@ export class Player {
         x = this.getRandomPosition(-100,100);
         z = this.getRandomPosition(-100,100);
         const environmentObjects = [
-            { path: 'Enviroment/Barracks.glb', rotation: [0, 31, 0], scale: [6, 6, 6], position: [20,0,-27] },
-            { path: 'Enviroment/Cottage.glb', rotation: [0, Math.PI / 2, 0], scale: [15, 15, 15] , position: [-12,0,-21] },
-            { path: 'Enviroment/Cottage.glb', rotation: [0, Math.PI / 2, 0], scale: [15, 15, 15] , position: [12,0,21] },
-            { path: 'Enviroment/Prairie Shed.glb', rotation: [0, 10, 0], scale: [2,2,2] , position: [-15,2,18] },
-            { path: 'Enviroment/Prairie Shed.glb', rotation: [0, 10, 0], scale: [2,2,2] , position: [16,2,-18]},
-            { path: 'Enviroment/Pine Tree.glb', rotation: [0, 0, 0], scale: [2,2,2], position: [15,3,12]},
-            { path: 'Enviroment/Pine Tree.glb', rotation: [0, 0, 0], scale: [2, 2, 2], position: [-18, 3, 7]},
-            { path: 'Enviroment/Pine Tree.glb', rotation: [0, 0, 0], scale: [2, 2, 2], position: [-11, 3, 13] },
-            { path: 'Enviroment/Pine Tree.glb', rotation: [0, 0, 0], scale: [2, 2, 2], position: [14, 3, -11] },
-            { path: 'Enviroment/Pine Tree.glb', rotation: [0, 0, 0], scale: [2, 2, 2], position: [9, 3, -12] },
-            { path: 'Enviroment/Pine Tree.glb', rotation: [0, 0, 0], scale: [2, 2, 2], position: [-7, 3, -14] },
-            { path: 'Enviroment/Pine Tree.glb', rotation: [0, 0, 0], scale: [2, 2, 2], position: [8, 3, 9] },
-            { path: 'Enviroment/Pine Tree.glb', rotation: [0, 0, 0], scale: [2, 2, 2], position: [8, 3, 19] },
-            { path: 'Enviroment/Pine Tree.glb', rotation: [0, 0, 0], scale: [2, 2, 2], position: [2, 3, 13] },
-            { path: 'Enviroment/Pine Tree.glb', rotation: [0, 0, 0], scale: [2, 2, 2], position: [5, 3, -9] },
-            { path: 'Enviroment/Pine Tree.glb', rotation: [0, 0, 0], scale: [2, 2, 2], position: [-8, 3, -9] },
-            { path: '/realSun.glb', rotation: [-10, 0, 0], scale: [1, 1, 1], position: [3, 21, 20] },
+            { path: 'Enviroment/Barn.glb', rotation: [0, 30, 0], scale: [15, 15, 15], position: [-15,0,23] },
+            { path: 'Enviroment/Tractor.glb', rotation: [0, 60, 0], scale: [0.3, 0.3, 0.3], position: [10,0,-2] },
+            { path: 'Enviroment/Pig.glb', rotation: [0, 30, 0], scale: [0.3, 0.3, 0.3], position: [10,0,10] },
+            { path: 'Enviroment/Pig.glb', rotation: [0, 60, 0], scale: [0.3, 0.3, 0.3], position: [17,0,21] },
+            { path: 'Enviroment/Pig.glb', rotation: [0, 10, 0], scale: [0.3, 0.3, 0.3], position: [10,0,5] },
+            { path: 'Enviroment/Cow.glb', rotation: [0, 25, 0], scale: [0.2, 0.2, 0.2], position: [-10,0,-5.4] },
+            { path: 'Enviroment/Cow.glb', rotation: [0, Math.PI, 0], scale: [0.2, 0.2, 0.2], position: [-10,0,5.4] },
+            { path: 'Enviroment/Cow.glb', rotation: [0, Math.PI/2, 0], scale: [0.2, 0.2, 0.2], position: [24,0,-24] },
+            { path: 'Enviroment/Cow.glb', rotation: [0, Math.PI, 0], scale: [0.2, 0.2, 0.2], position: [19,0,-18] },
+            { path: 'Enviroment/Tree.glb', rotation: [0, 0, 0], scale: [3,3,3], position: [14, 2.5, -11] },
+            { path: 'Enviroment/Tree.glb', rotation: [0, 0, 0], scale: [3,3,3], position: [9, 2.5, -15] },
+            { path: 'Enviroment/Tree.glb', rotation: [0, 0, 0], scale: [3,3,3], position: [-7, 2.5, -14] },
+            { path: 'Enviroment/Tree.glb', rotation: [0, 0, 0], scale: [3,3,3], position: [11, 2.5, 15] },
+            { path: 'Enviroment/Tree.glb', rotation: [0, 0, 0], scale: [3,3,3], position: [0, 2.5, 15] },
+            { path: 'Enviroment/Tree.glb', rotation: [0, 0, 0], scale: [3,3,3], position: [18, 2.5, 0] },
+            { path: 'Enviroment/Chicken.glb', rotation: [0, 30, 0], scale: [0.005,0.005,0.005], position: [10,0,-10] },
+            { path: 'Enviroment/Chicken.glb', rotation: [0, Math.PI / 2, 0], scale: [0.005,0.005,0.005], position: [12,0,-17] },
+            { path: 'Enviroment/Chicken.glb', rotation: [0, Math.PI / 4, 0], scale: [0.005,0.005,0.005], position: [16,0,-12] },
+            { path: 'Enviroment/Pond2.glb', rotation: [0, 0, 0], scale: [0.03,0.03,0.03], position: [-10,-0.19,0] },
+            { path: 'Enviroment/RockyBase.glb', rotation: [0, Math.PI / 4, 0], scale: [1.2,1.2,1.2], position: [-10,0,-2] },
+            { path: 'Enviroment/RockyBase.glb', rotation: [0, -Math.PI / 2, 0], scale: [1.2,1.2,1.2], position: [-10,0,0] },
+            { path: 'Enviroment/RockyBase.glb', rotation: [0, -Math.PI / 4, 0], scale: [1.2,1.2,1.2], position: [-8,0.01,1] },
+            { path: 'Enviroment/Dump truck.glb', rotation: [0, -Math.PI / 4, 0], scale: [0.7,0.7,0.7], position: [-20,0.4,0] },
+            { path: 'Enviroment/Truck.glb', rotation: [0, Math.PI / 2, 0], scale: [0.012,0.012,0.012], position: [0,0,-15] },
+            { path: 'Enviroment/House.glb', rotation: [0, Math.PI / 2, 0], scale: [4.5,4.5,4.5], position: [-20,2,-20] },
+            { path: 'Enviroment/Farm.glb', rotation: [0, Math.PI / 2, 0], scale: [0.05,0.05,0.05], position: [20,-0.01,20]},
         ];
         const loadedObjects = [];
         const loader = new GLTFLoader();

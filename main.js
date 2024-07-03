@@ -13,7 +13,7 @@ export class Main {
       0.1,
       1000
     );
-    this.scene.fog = new THREE.Fog(0x808080, 0, 100);
+    this.scene.fog = new THREE.Fog(0xADD8E6, 0, 100);
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       canvas: canvasRef,
@@ -34,7 +34,7 @@ export class Main {
 
     // Ground
     textureLoader.load(
-      "grass.jpg",
+      "dirt.png",
       (texture) => {
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
@@ -263,6 +263,29 @@ sun.load('resources/realSun.glb', function (gltf) {
 }, undefined, function (error) {
   console.error(error);
 });
+// sunshine
+var sun = new GLTFLoader();
+sun.load('resources/Sunshine.glb', function (gltf) {
+  var model = gltf.scene;
+  model.position.set(3, 21, 20); // Set position to (16,2,-18)
+  model.rotation.set(0,0, Math.PI / 4);
+  model.scale.set(1, 1, 1);
+  Main.scene.add(model);
+
+  // Create a bounding box for the model
+  model.traverse(function (child) {
+    if (child.isMesh) {
+      child.geometry.computeBoundingBox();
+      child.geometry.boundingBox.applyMatrix4(child.matrixWorld);
+    }
+  });
+
+  model.userData.boundingBox = new THREE.Box3().setFromObject(model);
+
+}, undefined, function (error) {
+  console.error(error);
+});
+
 { // Grass spawner
   var grassLoader = new GLTFLoader();
 
@@ -271,7 +294,7 @@ function getRandomValue(min, max) {
 }
 
 function createRandomGrass() {
-  grassLoader.load('resources/Enviroment/grass green.glb', function (gltf) {
+  grassLoader.load('resources/grass green.glb', function (gltf) {
     var model = gltf.scene;
     
     // Random position
@@ -296,12 +319,13 @@ function createRandomGrass() {
   });
 }
 
-// Create multiple random grass instances
-// for (let i = 0; i < 200; i++) { // Adjust the number of grass instances as needed
-//   createRandomGrass();
-// }
+for (let i = 0; i < 100; i++) { 
+  createRandomGrass();
+}
 
 }
+
+
 
 Main.init();
 
