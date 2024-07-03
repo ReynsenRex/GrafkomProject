@@ -4,58 +4,35 @@ import { PointerLockControls } from "three/addons/controls/PointerLockControls.j
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 export class Main {
-  static init() {
-    var canvasRef = document.getElementById("canvas");
+  static initialize() {
+    const canvas = document.getElementById("canvas");
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    );
-    this.scene.fog = new THREE.Fog(0xADD8E6, 0, 100);
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      canvas: canvasRef,
-    });
+    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
 
     // Load sky texture
+    this.scene.fog = new THREE.Fog(0xADD8E6, 0, 100);
+    
+    // Load ground texture
     const textureLoader = new THREE.TextureLoader();
     textureLoader.setPath("../resources/");
-    const skyTexture = textureLoader.load("sky.jpg");
+    textureLoader.load("dirt.png", (texture) => {
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(1000, 1000);
 
-    // Create sky dome
-    const skyMaterial = new THREE.MeshBasicMaterial({ map: skyTexture, side: THREE.BackSide });
-    const skyGeometry = new THREE.SphereGeometry(1000, 32, 32); 
-    const sky = new THREE.Mesh(skyGeometry, skyMaterial);
-    this.scene.add(sky);
-
-    // Ground
-    textureLoader.load(
-      "dirt.png",
-      (texture) => {
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(1000, 1000);
-      
-        const groundMaterial = new THREE.MeshStandardMaterial({ map: texture });
-        const groundGeometry = new THREE.PlaneGeometry(2000, 2000, 100, 100);
-        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-        ground.rotation.x = -Math.PI / 2;
-        ground.receiveShadow = true;
-        this.scene.add(ground);
-      }
-    );
-
-    // Boundaries
-    const boundaryMaterial = new THREE.MeshStandardMaterial({
-      color: 0x333333,
-      transparent: true,
-      opacity: 0.1,
+      const groundMaterial = new THREE.MeshStandardMaterial({ map: texture });
+      const groundGeometry = new THREE.PlaneGeometry(2000, 2000, 100, 100);
+      const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+      ground.rotation.x = -Math.PI / 2;
+      ground.receiveShadow = true;
+      this.scene.add(ground);
     });
-    
+
+    // Define boundaries
+    const boundaryMaterial = new THREE.MeshStandardMaterial({ color: 0x333333, transparent: true, opacity: 0.1 });
     const boundaries = [
       { position: [0, 25, -30], rotation: [0, 0, 0] },
       { position: [0, 25, 30], rotation: [0, Math.PI, 0] },
@@ -72,15 +49,10 @@ export class Main {
       this.scene.add(boundaryMesh);
     });
 
-    // Directional lighting
-    var directionalLight = new THREE.DirectionalLight(0xffffff);
-    var directionalLightHelper = new THREE.DirectionalLightHelper(directionalLight);
-    var pointlight = new THREE.PointLight(0xffffff);
-
+    // Add lighting
+    const directionalLight = new THREE.DirectionalLight(0xffffff);
     directionalLight.castShadow = true;
-    directionalLight.position.set(3, 19, 18);
-    pointlight.position.set(3, 20, 19);
-
+    directionalLight.position.set(-3, 19, -18);
     directionalLight.shadow.mapSize.width = 2048;
     directionalLight.shadow.mapSize.height = 2048;
     directionalLight.shadow.camera.near = 0.5;
@@ -92,25 +64,19 @@ export class Main {
     directionalLight.shadow.bias = -0.01;
 
     this.scene.add(directionalLight);
-    this.scene.add(directionalLightHelper);
-    this.scene.add(pointlight);
+    this.scene.add(new THREE.DirectionalLightHelper(directionalLight));
 
-    var thirdPerson = new ThirdPersonCamera(
-      this.camera,
-      new THREE.Vector3(-5, 5, 0),
-      new THREE.Vector3(0, 0, 0)
-    );
+    const pointLight = new THREE.PointLight(0xffffff);
+    pointLight.position.set(3, 20, 19);
+    this.scene.add(pointLight);
 
-    var controller = new PlayerController();
-    this.player = new Player(thirdPerson, controller, this.scene);
+    // Set up third-person camera
+    const thirdPersonCamera = new ThirdPersonCamera(this.camera, new THREE.Vector3(-5, 5, 0), new THREE.Vector3(0, 0, 0));
+    const playerController = new PlayerController();
+    this.player = new Player(thirdPersonCamera, playerController, this.scene);
 
-    // Free camera controls
-    this.freeCamera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      5000
-    );
+    // Set up free camera
+    this.freeCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
     this.freeCamera.position.set(0, 10, 20);
     this.pointerLockControls = new PointerLockControls(this.freeCamera, this.renderer.domElement);
     this.isFreeCamActive = false;
@@ -122,7 +88,7 @@ export class Main {
       }
     });
 
-    // Variables for movement
+    // Movement variables
     this.moveForward = false;
     this.moveBackward = false;
     this.moveLeft = false;
@@ -132,20 +98,12 @@ export class Main {
     this.moveSpeed = 0.1;
     this.rollSpeed = 0.01;
 
-    // Event listeners for key down and up
-    document.addEventListener("keydown", this.onKeyDown.bind(this));
-    document.addEventListener("keyup", this.onKeyUp.bind(this));
-
-    // Reset mouse and camera orientation
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "r") {
-        this.pointerLockControls.reset();
-      }
-    });
-
+    // Key event listeners
+    document.addEventListener("keydown", this.handleKeyDown.bind(this));
+    document.addEventListener("keyup", this.handleKeyUp.bind(this));
   }
 
-  static toggleFreeCam() {
+  static toggleFreeCamera() {
     this.isFreeCamActive = !this.isFreeCamActive;
     if (this.isFreeCamActive) {
       this.camera = this.freeCamera;
@@ -156,7 +114,7 @@ export class Main {
     }
   }
 
-  static onKeyDown(event) {
+  static handleKeyDown(event) {
     switch (event.key) {
       case "w":
         this.moveForward = true;
@@ -177,12 +135,12 @@ export class Main {
         this.tiltRight = true;
         break;
       case "g":
-        this.toggleFreeCam();
+        this.toggleFreeCamera();
         break;
     }
   }
 
-  static onKeyUp(event) {
+  static handleKeyUp(event) {
     switch (event.key) {
       case "w":
         this.moveForward = false;
@@ -205,7 +163,7 @@ export class Main {
     }
   }
 
-  static render(dt) {
+  static render(deltaTime) {
     if (this.isFreeCamActive) {
       const moveVector = new THREE.Vector3();
       if (this.moveForward) {
@@ -235,106 +193,76 @@ export class Main {
       this.freeCamera.position.z = Math.max(-boundarySize, Math.min(boundarySize, this.freeCamera.position.z));
       this.freeCamera.position.y = Math.max(this.freeCamera.position.y, 1.5);
     } else {
-      this.player.update(dt);
+      this.player.update(deltaTime);
     }
     this.renderer.render(this.scene, this.camera);
   }
-
 }
-//rotation: [-10, 0, 0], scale: [1, 1, 1], position: [3, 21, 20]
-var sun = new GLTFLoader();
-sun.load('resources/realSun.glb', function (gltf) {
-  var model = gltf.scene;
-  model.position.set(3, 21, 20); // Set position to (16,2,-18)
-  model.rotation.set(-10, 0, 0);
-  model.scale.set(1, 1, 1);
-  Main.scene.add(model);
 
-  // Create a bounding box for the model
-  model.traverse(function (child) {
-    if (child.isMesh) {
-      child.geometry.computeBoundingBox();
-      child.geometry.boundingBox.applyMatrix4(child.matrixWorld);
-    }
+// Load models
+const gltfLoader = new GLTFLoader();
+
+function loadModel(path, position, rotation, scale) {
+  gltfLoader.load(path, (gltf) => {
+    const model = gltf.scene;
+    model.position.set(...position);
+    model.rotation.set(...rotation);
+    model.scale.set(...scale);
+    Main.scene.add(model);
+
+    model.traverse((child) => {
+      if (child.isMesh) {
+        child.geometry.computeBoundingBox();
+        child.geometry.boundingBox.applyMatrix4(child.matrixWorld);
+      }
+    });
+
+    model.userData.boundingBox = new THREE.Box3().setFromObject(model);
+  }, undefined, (error) => {
+    console.error(error);
   });
+}
 
-  model.userData.boundingBox = new THREE.Box3().setFromObject(model);
+loadModel('resources/Sunshine.glb', [-3, 21, -20], [0, 0, Math.PI / 4], [1, 1, 1]);
 
-}, undefined, function (error) {
-  console.error(error);
-});
-// sunshine
-var sun = new GLTFLoader();
-sun.load('resources/Sunshine.glb', function (gltf) {
-  var model = gltf.scene;
-  model.position.set(3, 21, 20); // Set position to (16,2,-18)
-  model.rotation.set(0,0, Math.PI / 4);
-  model.scale.set(1, 1, 1);
-  Main.scene.add(model);
-
-  // Create a bounding box for the model
-  model.traverse(function (child) {
-    if (child.isMesh) {
-      child.geometry.computeBoundingBox();
-      child.geometry.boundingBox.applyMatrix4(child.matrixWorld);
-    }
-  });
-
-  model.userData.boundingBox = new THREE.Box3().setFromObject(model);
-
-}, undefined, function (error) {
-  console.error(error);
-});
-
-{ // Grass spawner
-  var grassLoader = new GLTFLoader();
-
+// Grass spawner
 function getRandomValue(min, max) {
   return Math.random() * (max - min) + min;
 }
 
 function createRandomGrass() {
-  grassLoader.load('resources/grass green.glb', function (gltf) {
-    var model = gltf.scene;
-    
-    // Random position
-    var x = getRandomValue(-40, 40);
-    var y = 0; // Assuming grass is on the ground, y can be 0
-    var z = getRandomValue(-40, 40);
+  gltfLoader.load('resources/grass green.glb', (gltf) => {
+    const model = gltf.scene;
+    const x = getRandomValue(-40, 40);
+    const y = 0;
+    const z = getRandomValue(-40, 40);
+    const rotationY = getRandomValue(-Math.PI, Math.PI);
+    const scale = getRandomValue(4, 4);
+
     model.position.set(x, y, z);
-    
-    // Random rotation
-    var rotationY = getRandomValue(-Math.PI, Math.PI);
     model.rotation.set(0, rotationY, 0);
-    
-    // Random scale
-    var scale = getRandomValue(4, 4); // Grass typically varies less in size
     model.scale.set(scale, scale, scale);
-    
+
     model.castShadow = true;
     model.receiveShadow = true;
     Main.scene.add(model);
-  }, undefined, function (error) {
+  }, undefined, (error) => {
     console.error(error);
   });
 }
 
-for (let i = 0; i < 100; i++) { 
+for (let i = 0; i < 100; i++) {
   createRandomGrass();
 }
 
-}
+Main.initialize();
 
-
-
-Main.init();
-
-var lastTimestamp = 0;
+let lastTime = 0;
 function animate(timestamp) {
-  var dt = (timestamp - lastTimestamp) / 1000;
-  lastTimestamp = timestamp;
+  const deltaTime = (timestamp - lastTime) / 1000;
+  lastTime = timestamp;
 
-  Main.render(dt);
+  Main.render(deltaTime);
   requestAnimationFrame(animate);
 }
 animate();

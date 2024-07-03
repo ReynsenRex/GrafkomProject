@@ -16,9 +16,6 @@ export class Player {
         this.camera.setup(new THREE.Vector3(0, 0, 0), this.rotationVector);
 
         this.loadModel();
-        for (let i = 0; i < 0; i++) {
-            this.createApple();
-        }
         this.loadEnvironmentModels();  // Ensure this method is defined in this class
     }
 
@@ -55,82 +52,8 @@ export class Player {
         });
     }
 
-    createApple() {
-        const gltfLoader = new GLTFLoader();
-        gltfLoader.setPath("../resources/");
-        gltfLoader.load("Apple.glb", (gltf) => {
-            const model = gltf.scene;
-            model.traverse((node) => {
-                if (node.isMesh) {
-                    node.castShadow = true;
-                    node.receiveShadow = true;
-                }
-            });
-            model.type = "apple";
-            model.scale.set(0.06, 0.06, 0.06);
-            const z = (Math.random() * 2 * Math.PI) / 2;
-            model.rotation.z = 0;
-            model.rotation.x = 0;
-            model.position.set(
-                Math.random() * 60 - 30,
-                0.5,
-                Math.random() * 60 - 30
-            );
-
-            const appleHitbox = new THREE.Sphere(model.position, 1);
-
-            model.userData.hitbox = appleHitbox;
-            model.userData.velocity = new THREE.Vector3(
-                Math.cos(z) * 0.05,
-                0,
-                Math.sin(z) * 0.05
-            );
-            this.scene.add(model);
-            if (gltf.animations && gltf.animations.length > 0) {
-                const mixer = new THREE.AnimationMixer(model);
-                gltf.animations.forEach((clip) => {
-                    mixer.clipAction(clip).play();
-                });
-                mixers.push(mixer);
-            }
-        });
-    }
-
-    getRandomPosition(min, max) {
-        return Math.random() * (max - min) + min;
-    }
-
-    checkOverlap(position, objects, minDistance) {
-        for (const obj of objects) {
-            const distance = Math.sqrt(
-                Math.pow(position[0] - obj.position[0], 2) +
-                Math.pow(position[1] - obj.position[1], 2) +
-                Math.pow(position[2] - obj.position[2], 2)
-            );
-            if (distance < minDistance) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    getRandomNonOverlappingPosition(existingObjects, minDistance) {
-        let position;
-        let tries = 0;
-        const maxTries = 100; // Limit the number of tries to prevent infinite loops
-      
-        do {
-            position = [this.getRandomPosition(-30, 30), 0, this.getRandomPosition(-30, 30)];
-            tries++;
-        } while (this.checkOverlap(position, existingObjects, minDistance) && tries < maxTries);
-      
-        return position;
-    }
 
     loadEnvironmentModels() {
-        var x,z;
-        x = this.getRandomPosition(-100,100);
-        z = this.getRandomPosition(-100,100);
         const environmentObjects = [
             { path: 'Enviroment/Barn.glb', rotation: [0, 30, 0], scale: [15, 15, 15], position: [-15,0,23] },
             { path: 'Enviroment/Tractor.glb', rotation: [0, 60, 0], scale: [0.3, 0.3, 0.3], position: [10,0,-2] },
@@ -166,7 +89,6 @@ export class Player {
         environmentObjects.forEach((obj) => {
             loader.load(obj.path, (gltf) => {
                 const model = gltf.scene;
-                const position = this.getRandomNonOverlappingPosition(loadedObjects, 10); // Ensure objects do not overlap
                 
                 model.traverse((node) => {
                     if (node.isMesh) {
@@ -237,7 +159,7 @@ export class Player {
             }
 
             direction.normalize();
-            direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.camera.rotationAngle.y);
+            direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.camera.rotationAngle.y,this.camera.rotationAngle.x);
 
             const newPosition = this.mesh.position.clone().add(direction.multiplyScalar(dt * moveSpeed));
 
@@ -255,26 +177,11 @@ export class Player {
 
         this.camera.updateRotation(this.controller, dt);
         this.camera.setup(this.mesh.position, this.rotationVector);
-        this.detectAppleCollision(this.boundingBox, this.scene);
         this.detectEnvironmentCollision(this.boundingBox, this.scene);
     }
-
-    detectAppleCollision(playerBoundingBox, scene) {
-        scene.children.forEach((child) => {
-            if (child.type === "apple") {
-                const appleHitbox = child.userData.hitbox;
-
-                if (playerBoundingBox.intersectsSphere(appleHitbox)) {
-                    console.log("Apple collected!");
-
-                    scene.remove(child);
-                }
-            }
-        });
-    }
+    
     detectEnvironmentCollision(playerBoundingBox, scene) {
         scene.children.forEach((child) => {
-            const prevPosition = playerBoundingBox.getCenter(new THREE.Vector3());           
             if (child.type === "env") {
                 const envHitbox = child.userData.hitbox;
 
@@ -371,8 +278,6 @@ export class PlayerController {
             case "j": this.key["rotateLeft"] = true; break;
             case "L":
             case "l": this.key["rotateRight"] = true; break;
-            case "C":
-            case "c": this.key["toggleCamera"] = !this.key["toggleCamera"]; break;
         }
     }
 
@@ -416,10 +321,10 @@ export class ThirdPersonCamera {
         const rotationSpeed = 1;
 
         if (controller.key["rotateUp"]) {
-            this.rotationAngle.x -= rotationSpeed * dt;
+            this.rotationAngle.z -= rotationSpeed * dt;
         }
         if (controller.key["rotateDown"]) {
-            this.rotationAngle.x += rotationSpeed * dt;
+            this.rotationAngle.z += rotationSpeed * dt;
         }
         if (controller.key["rotateLeft"]) {
             this.rotationAngle.y += rotationSpeed * dt;
@@ -433,12 +338,6 @@ export class ThirdPersonCamera {
             this.targetZoomLevel -= controller.key["zoom"];
             this.targetZoomLevel = Math.max(0.1, Math.min(10, this.targetZoomLevel));
             controller.key["zoom"] = 0; // Reset zoom input
-        }
-
-        // Toggle camera view
-        if (controller.key["toggleCamera"]) {
-            this.isFirstPerson = !this.isFirstPerson;
-            controller.key["toggleCamera"] = false; // Reset toggle input
         }
 
         // Update rotation based on mouse movements
@@ -462,7 +361,16 @@ export class ThirdPersonCamera {
         var temp = new THREE.Vector3();
         temp.copy(this.positionOffset);
         temp.multiplyScalar(this.zoomLevel);
+
+        // Apply the rotation around the Y axis
         temp.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle.y + this.rotationAngle.y);
+
+        // Create a quaternion for the X axis rotation
+        const quaternion = new THREE.Quaternion();
+        quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), this.rotationAngle.z);
+
+        // Rotate the temp vector by the quaternion
+        temp.applyQuaternion(quaternion);
 
         temp.addVectors(target, temp);
         this.camera.position.copy(temp);
@@ -472,3 +380,4 @@ export class ThirdPersonCamera {
         this.camera.lookAt(temp);
     }
 }
+
